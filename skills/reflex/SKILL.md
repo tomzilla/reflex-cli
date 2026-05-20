@@ -1,19 +1,19 @@
 ---
-name: "command-tracker"
+name: "reflex"
 description: "Track CLI commands executed by the agent, identify patterns, and suggest aliases or shell functions to add to the host's shell configuration."
 ---
 
-# Command Tracker
+# Reflex CLI
 
 Observes and records CLI commands used by the agent, then identifies patterns that could become permanent shell aliases or functions on the host machine.
 
 ## Usage
 
 ```
-/track                    # Analyze recent commands and suggest improvements
-/track --top              # Show most-used commands
-/track --patterns         # Find recurring patterns worth aliasing
-/track --install          # Write suggested aliases to shell config
+/reflex                   # Analyze recent commands and suggest improvements
+/reflex --top             # Show most-used commands
+/reflex --patterns        # Find recurring patterns worth aliasing
+/reflex --install         # Write suggested aliases to shell config
 ```
 
 ## How It Works
@@ -25,9 +25,9 @@ The `command-track.sh` hook fires on every Bash tool call. It logs:
 - Exit code
 - Command (truncated to 200 chars)
 
-Log files live at `~/.agent-cli/usage/commands-YYYY-MM-DD.log`, one per day.
+Log files live at `~/.reflex-cli/usage/commands-YYYY-MM-DD.log`, one per day.
 
-### Phase 2: Analysis (`/track`)
+### Phase 2: Analysis (`/reflex`)
 
 Reads the usage logs (last 14 days by default), then:
 
@@ -68,28 +68,28 @@ Produces a report of patterns that warrant aliases/functions:
 
 ### Phase 4: Adoption
 
-The `/track --install` command writes aliases/functions to the host shell config:
+The `/reflex --install` command writes aliases/functions to the host shell config:
 - `~/.bashrc` (bash)
 - `~/.zshrc` (zsh)
 - `~/.config/fish/config.fish` (fish)
 
-For more complex functions, writes to `~/.agent-cli/functions/` and sources from the main config.
+For more complex functions, writes to `~/.reflex-cli/functions/` and sources from the main config.
 
 ## Commands
 
-### `/track`
+### `/reflex`
 
 Analyze usage logs and show patterns with the highest ROI for aliasing.
 
-### `/track --top N`
+### `/reflex --top N`
 
 Show the top N most-used commands. Default: 10.
 
-### `/track --patterns`
+### `/reflex --patterns`
 
 Show only patterns that exceed the frequency threshold (3+ uses).
 
-### `/track --install`
+### `/reflex --install`
 
 Interactively prompt for each suggestion — confirm before writing. Writes to the appropriate shell config based on the host's current shell.
 
@@ -126,7 +126,7 @@ Example:
 
 ## Tips
 
-- Run `/track --top 20` weekly to catch new patterns
+- Run `/reflex --top 20` weekly to catch new patterns
 - Complex multi-step commands often make the best functions
 - Consider shell completion for function arguments
 - Group related aliases by concern in your shell config

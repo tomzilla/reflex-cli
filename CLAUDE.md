@@ -1,12 +1,12 @@
-# Agent CLI — Local CLI Enhancement Agent
+# Reflex CLI — Build Command Reflexes
 
-An agent skill that observes the commands your AI agent uses, identifies patterns that would benefit from being made permanent shell aliases/functions, and adds them to your host machine's shell configuration.
+An agent plugin that observes the CLI commands your agent executes, identifies recurring patterns, and installs shell aliases/functions to your host machine — turning observed patterns into automatic reflexes.
 
 ## Concept
 
-Your AI agent executes hundreds of commands per session. Some become muscle memory — `git st`, `grep -r`, `curl -sL`. Others are complex chains repeated across sessions that could be simplified.
+Your AI agent executes hundreds of commands per session. Some become muscle memory — `git st`, `grep -r`, `curl -sL`. Others are complex chains repeated across sessions that could be simplified into shell functions.
 
-This plugin turns observed command patterns into real shell improvements on your machine.
+Reflex CLI turns observed command patterns into real shell improvements on your machine.
 
 ## Architecture
 
@@ -15,19 +15,19 @@ Agent executes command
         ↓
 command-track.sh hook fires (PostToolUse, Bash)
         ↓
-Logs to ~/.agent-cli/usage/commands-YYYY-MM-DD.log
+Logs to ~/.reflex-cli/usage/commands-YYYY-MM-DD.log
         ↓
-/track analyzes 14-day rolling window
+/reflex analyzes 14-day rolling window
         ↓
-Patterns flagged → suggestions generated
+Patterns scored → suggestions generated
         ↓
-/track --install writes to ~/.bashrc / ~/.zshrc / fish config
+/reflex --install writes to ~/.bashrc / ~/.zshrc / fish config
 ```
 
 ## File Structure
 
 ```
-agent-cli/
+reflex-cli/
 ├── CLAUDE.md              ← This file
 ├── README.md
 ├── settings.json           ← Plugin manifest
@@ -35,10 +35,10 @@ agent-cli/
 │   ├── hooks.json          ← Hook registration
 │   └── command-track.sh    ← The tracking hook
 ├── skills/
-│   └── command-tracker/
-│       └── SKILL.md        ← Main skill
+│   └── reflex/
+│       └── SKILL.md        ← Main skill (/reflex commands)
 ├── agents/
-│   └── pattern-analyst.md   ← Sub-agent for heavy analysis
+│   └── pattern-analyst.md  ← Sub-agent for heavy analysis
 └── reference/
     └── shell-config-guide.md
 ```
@@ -47,14 +47,14 @@ agent-cli/
 
 | Command | Description |
 |---------|-------------|
-| `/track` | Analyze recent commands, show alias/function suggestions |
-| `/track --top N` | Show most-used commands |
-| `/track --patterns` | Show only recurring patterns (3+ uses) |
-| `/track --install` | Write confirmed aliases to shell config |
+| `/reflex` | Analyze recent commands, show alias/function suggestions |
+| `/reflex --top N` | Show most-used commands |
+| `/reflex --patterns` | Show only recurring patterns (3+ uses) |
+| `/reflex --install` | Write confirmed aliases to shell config |
 
 ## Key Principles
 
-1. **Observer only** — never modifies anything without explicit `/track --install`
+1. **Observer only** — never modifies anything without explicit `/reflex --install`
 2. **Zero overhead** — hook is silent on success, only writes on command execution
 3. **User controls adoption** — suggestions are offered, not auto-applied
 4. **Cross-session persistence** — logs survive restarts, analyzed over 14-day window
@@ -65,7 +65,7 @@ Works on macOS and Linux. Detects current shell (`$SHELL`) and writes to the app
 
 ## Hook Configuration
 
-When installed as a plugin, the hook is registered via `${AGENT_CLI_ROOT}` variable:
+When installed as a plugin, the hook is registered via `${REFLEX_CLI_ROOT}` variable:
 
 ```json
 {
@@ -74,11 +74,11 @@ When installed as a plugin, the hook is registered via `${AGENT_CLI_ROOT}` varia
       "matcher": "Bash",
       "hooks": [{
         "type": "command",
-        "command": "${AGENT_CLI_ROOT}/hooks/command-track.sh"
+        "command": "${REFLEX_CLI_ROOT}/hooks/command-track.sh"
       }]
     }]
   }
 }
 ```
 
-**Important**: Use `${AGENT_CLI_ROOT}` — a relative path like `./hooks/command-track.sh` will silently fail when the agent runs from a different working directory.
+**Important**: Use `${REFLEX_CLI_ROOT}` — a relative path like `./hooks/command-track.sh` will silently fail when the agent runs from a different working directory.

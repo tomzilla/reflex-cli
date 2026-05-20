@@ -1,23 +1,33 @@
 {
-  "name": "agent-cli",
-  "displayName": "Agent CLI Tracker",
+  "name": "reflex-cli",
+  "displayName": "Reflex CLI",
   "version": "1.0.0",
   "description": "Track agent CLI commands, identify patterns, and install aliases to the host shell.",
   "author": "Tom Wu",
   "license": "MIT",
-  "platforms": ["hermes", "openclaw", "claude-code"],
+  "platforms": [
+    "hermes",
+    "openclaw",
+    "claude-code"
+  ],
   "category": "productivity",
-  "tags": ["cli", "aliases", "shell", "productivity", "tracking"],
-  "repository": "https://github.com/your/agent-cli",
+  "tags": [
+    "cli",
+    "aliases",
+    "shell",
+    "productivity",
+    "tracking"
+  ],
+  "repository": "https://github.com/your/reflex-cli",
   "commands": {
-    "track": "/track",
-    "track-top": "/track --top",
-    "track-patterns": "/track --patterns",
-    "track-install": "/track --install"
+    "reflex": "/reflex",
+    "reflex-top": "/reflex --top",
+    "reflex-patterns": "/reflex --patterns",
+    "reflex-install": "/reflex --install"
   },
   "hooks": {
     "PostToolUse": {
-      "Bash": "${AGENT_CLI_ROOT}/hooks/command-track.sh"
+      "Bash": "${REFLEX_CLI_ROOT}/hooks/command-track.sh"
     }
   }
 }

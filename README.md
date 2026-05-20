@@ -1,6 +1,6 @@
-# Agent CLI
+# Reflex CLI
 
-> Turn your agent's command patterns into permanent shell aliases.
+> Build command reflexes — turn your agent's patterns into shell shortcuts.
 
 An agent plugin that observes CLI commands your agent executes, identifies recurring patterns, and suggests — then installs — shell aliases and functions to your host machine.
 
@@ -15,15 +15,15 @@ An agent plugin that observes CLI commands your agent executes, identifies recur
 
 | Command | Description |
 |---------|-------------|
-| `/track` | Analyze recent commands, show all suggestions |
-| `/track --top 20` | Show top 20 most-used commands |
-| `/track --patterns` | Show only patterns (3+ uses) |
-| `/track --install` | Write confirmed aliases to shell config |
+| `/reflex` | Analyze recent commands, show all suggestions |
+| `/reflex --top 20` | Show top 20 most-used commands |
+| `/reflex --patterns` | Show only patterns (3+ uses) |
+| `/reflex --install` | Write confirmed aliases to shell config |
 
 ## Example Session
 
 ```
-> /track
+> /reflex
 
 📊 Command Usage Analysis (14 days)
 
@@ -41,16 +41,7 @@ An agent plugin that observes CLI commands your agent executes, identifies recur
   alias gs='git status'
   alias gl='git log --oneline --graph --decorate'
 
-Run /track --install to write these to your shell config.
-```
-
-## Install
-
-```bash
-# Clone into your agent's skills directory
-git clone https://github.com/your/agent-cli ~/path/to/agent-cli
-
-# Configure hook in your agent's settings.json
+Run /reflex --install to write these to your shell config.
 ```
 
 ## How It Works
@@ -60,17 +51,17 @@ Command executed → hook fires → logs timestamp + command + exit code
                                     ↓
                             Rolling 14-day log files
                                     ↓
-                    /track reads and analyzes patterns
+                    /reflex reads and analyzes patterns
                                     ↓
                     Suggestions generated (score ≥ 5)
                                     ↓
-                    /track --install writes to shell config
+                    /reflex --install writes to shell config
 ```
 
 ## Log Location
 
 ```
-~/.agent-cli/usage/commands-YYYY-MM-DD.log
+~/.reflex-cli/usage/commands-YYYY-MM-DD.log
 ```
 
 Format: `TIMESTAMP|EXIT_CODE|COMMAND`

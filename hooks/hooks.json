@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${AGENT_CLI_ROOT}/hooks/command-track.sh"
+            "command": "${REFLEX_CLI_ROOT}/hooks/command-track.sh"
           }
         ]
       }

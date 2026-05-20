@@ -1,6 +1,6 @@
 ---
-name: pattern-analyst
-description: Analyze command usage logs to identify alias and function candidates. Reads 14-day rolling logs from ~/.agent-cli/usage/, scores patterns by frequency and character savings, and produces ranked suggestions for shell aliases and functions.
+name: "pattern-analyst"
+description: "Analyze command usage logs to identify alias and function candidates. Reads 14-day rolling logs from ~/.reflex-cli/usage/, scores patterns by frequency and character savings, and produces ranked suggestions for shell aliases and functions."
 tools: Read, Glob, Grep, terminal
 model: inherit
 maxTurns: 40
@@ -12,7 +12,7 @@ Analyze command usage logs and identify patterns worth aliasing or converting to
 
 ## Your Task
 
-Given a topic area (or "all"), analyze `~/.agent-cli/usage/commands-*.log` files from the last 14 days to find:
+Given a topic area (or "all"), analyze `~/.reflex-cli/usage/commands-*.log` files from the last 14 days to find:
 1. Most-used commands (frequency ranking)
 2. Flag patterns (same command + same flags, 3+ uses)
 3. Chain patterns (commands with `&&` or `||`)
@@ -24,7 +24,7 @@ Given a topic area (or "all"), analyze `~/.agent-cli/usage/commands-*.log` files
 ### 1. Find log files
 
 ```bash
-LOG_DIR="${HOME}/.agent-cli/usage"
+LOG_DIR="${HOME}/.reflex-cli/usage"
 ls -lt "$LOG_DIR"/commands-*.log | head -20
 ```
 
@@ -32,7 +32,7 @@ ls -lt "$LOG_DIR"/commands-*.log | head -20
 
 Combine the last 14 days into a single frequency table:
 ```bash
-cat ~/.agent-cli/usage/commands-*.log | \
+cat ~/.reflex-cli/usage/commands-*.log | \
   cut -d'|' -f3 | \
   sed 's/[[:space:]]\+/ /g' | \
   sort | \

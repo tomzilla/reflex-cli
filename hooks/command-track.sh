@@ -25,7 +25,7 @@ display_cmd=$(echo "$COMMAND" | cut -c1-200)
 
 # Build usage log entry
 TIMESTAMP=$(date +%s)
-TRACK_DIR="${HOME}/.agent-cli/usage"
+TRACK_DIR="${HOME}/.reflex-cli/usage"
 mkdir -p "$TRACK_DIR"
 
 # Log command + exit code to daily rolling file
