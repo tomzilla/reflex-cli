@@ -1,0 +1,272 @@
+#!/bin/bash
+# Reflex CLI — Master command
+# Usage: reflex <subcommand> [args]
+#   reflex list              — show available commands
+#   reflex add <script>      — install a script to bin/
+#   reflex remove <name>     — uninstall a command
+#   reflex new <name>        — scaffold a new command
+#   reflex <cmd> [args...]   — run a command
+
+set -e
+
+REFLEX_DIR="${HOME}/.reflex-cli"
+BIN_DIR="${REFLEX_DIR}/bin"
+USAGE_DIR="${REFLEX_DIR}/usage"
+
+mkdir -p "$BIN_DIR"
+
+# ---- Help handling ----
+
+show_help() {
+    local cmd="$1"
+    case "$cmd" in
+        list|ls)
+            echo "Usage: reflex list"
+            echo "List all installed reflex commands."
+            ;;
+        add)
+            echo "Usage: reflex add <script-path>"
+            echo "Copy a script to ~/.reflex-cli/bin/ and make it callable as 'reflex <name>'."
+            echo "  Example: reflex add ~/tmp/deploy.sh"
+            ;;
+        remove|rm)
+            echo "Usage: reflex remove <name>"
+            echo "Remove a command from ~/.reflex-cli/bin/."
+            ;;
+        new)
+            echo "Usage: reflex new <name> [--python|--shell]"
+            echo "Scaffold a new reflex command in ~/.reflex-cli/bin/."
+            echo "  reflex new parse --python"
+            echo "  reflex new build --shell"
+            ;;
+        help)
+            echo "Usage: reflex help <command>"
+            echo "Show help for a specific command."
+            ;;
+        "")
+            echo "Reflex CLI — build command reflexes"
+            echo ""
+            echo "Usage: reflex <command> [args]"
+            echo ""
+            echo "Built-in commands:"
+            echo "  reflex list              show available commands"
+            echo "  reflex add <script>      install a script to bin/"
+            echo "  reflex remove <name>     uninstall a command"
+            echo "  reflex new <name>        scaffold a new command"
+            echo "  reflex help <command>    show help for a command"
+            echo ""
+            echo "Installed commands:"
+            list_commands
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Intercept -h / --help before dispatch
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    show_help "${2:-}"
+    exit $?
+fi
+
+# ---- Command implementations ----
+
+list_commands() {
+    echo "Available reflex commands:"
+    if [ -d "$BIN_DIR" ] && [ -n "$(ls -A "$BIN_DIR" 2>/dev/null)" ]; then
+        ls -1 "$BIN_DIR" | sort | while read f; do
+            local path="$BIN_DIR/$f"
+            local desc=""
+            if [ -f "$path" ]; then
+                desc=$(grep -m1 "^# description:" "$path" 2>/dev/null | cut -d: -f2- | sed 's/^ *//')
+                if [ -z "$desc" ]; then
+                    desc=$(head -5 "$path" | grep -m1 "^# .*[A-Z]" | cut -d# -f2- | sed 's/^ *//')
+                fi
+            fi
+            echo "  $f${desc:+ — $desc}"
+        done
+    else
+        echo "  (no commands installed)"
+    fi
+}
+
+cmd_list() {
+    list_commands
+}
+
+cmd_add() {
+    local src="$1"
+    if [ -z "$src" ]; then
+        echo "Error: no script path provided."
+        echo "Usage: reflex add <script-path>"
+        exit 1
+    fi
+    if [ ! -f "$src" ]; then
+        echo "Error: $src not found"
+        exit 1
+    fi
+
+    local name
+    name=$(basename "$src")
+    name="${name%.*}"  # strip extension
+
+    cp "$src" "$BIN_DIR/$name"
+    chmod +x "$BIN_DIR/$name"
+    echo "Added: $name → $BIN_DIR/$name"
+}
+
+cmd_remove() {
+    local name="$1"
+    if [ -z "$name" ]; then
+        echo "Error: no command name provided."
+        echo "Usage: reflex remove <name>"
+        exit 1
+    fi
+    if [ ! -e "$BIN_DIR/$name" ] && [ ! -e "$BIN_DIR/${name}.py" ]; then
+        echo "Error: '$name' not found in $BIN_DIR"
+        exit 1
+    fi
+    rm -f "$BIN_DIR/$name" "$BIN_DIR/${name}.py"
+    echo "Removed: $name"
+}
+
+cmd_new() {
+    local name="$1"
+    local type="${2:-py}"
+
+    if [ -z "$name" ]; then
+        echo "Error: no command name provided."
+        echo "Usage: reflex new <name> [--python|--shell]"
+        exit 1
+    fi
+
+    if [[ "$name" == --python ]]; then
+        type="py"
+        name="$1"
+    elif [[ "$name" == --shell ]]; then
+        type="sh"
+        name="$1"
+    fi
+
+    # Also accept reflex new name --python
+    if [[ "${2:-}" == --python ]]; then
+        type="py"
+    elif [[ "${2:-}" == --shell ]]; then
+        type="sh"
+    fi
+
+    local ext=".$type"
+    local path="$BIN_DIR/${name}${ext}"
+
+    if [ -e "$path" ]; then
+        echo "Error: $path already exists"
+        exit 1
+    fi
+
+    if [ "$type" = "py" ]; then
+        cat > "$path" << 'PYEOF'
+#!/usr/bin/env python3
+# description: TODO
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(description='TODO')
+    parser.add_argument('input', nargs='?', help='Input file or argument')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    args = parser.parse_args()
+
+    if args.verbose:
+        print(f"Running with input: {args.input}")
+
+if __name__ == '__main__':
+    main()
+PYEOF
+    else
+        cat > "$path" << 'SHEOF'
+#!/bin/bash
+# description: TODO
+set -e
+
+INPUT="${1:-}"
+VERBOSE="${VERBOSE:-0}"
+
+if [ "$VERBOSE" = "1" ]; then
+    echo "Running with input: $INPUT"
+fi
+
+# TODO: implement
+PYEOF
+    fi
+
+    chmod +x "$path"
+    echo "Created: $path"
+    echo "Run 'reflex $name -h' to see usage once implemented."
+}
+
+cmd_help() {
+    local cmd="$1"
+    if [ -z "$cmd" ]; then
+        show_help ""
+        exit 0
+    fi
+
+    # Check if it's an installed command first
+    local bin_path="$BIN_DIR/$cmd"
+    local bin_path_py="$BIN_DIR/${cmd}.py"
+
+    if [ -x "$bin_path" ] || [ -x "$bin_path_py" ]; then
+        if [ -x "$bin_path_py" ]; then
+            python3 "$bin_path_py" -h 2>/dev/null && exit 0
+        fi
+        if [ -x "$bin_path" ]; then
+            "$bin_path" -h 2>/dev/null && exit 0
+        fi
+    fi
+
+    # Show description or usage
+    if [ -f "$bin_path" ] || [ -f "$bin_path_py" ]; then
+        local desc=$(grep -m1 "^# description:" "${bin_path}${bin_path_py}" 2>/dev/null | cut -d: -f2- | sed 's/^ *//')
+        echo "reflex $cmd — ${desc:-no description}"
+    else
+        show_help "$cmd"
+    fi
+}
+
+# ---- Main dispatcher ----
+
+SUBCOMMAND="${1:-}"
+shift 2>/dev/null || true
+
+case "$SUBCOMMAND" in
+    list|ls)
+        cmd_list ;;
+    add)
+        cmd_add "$1" ;;
+    remove|rm)
+        cmd_remove "$1" ;;
+    new)
+        cmd_new "$1" "$2" ;;
+    help)
+        cmd_help "$1" ;;
+    "")
+        show_help "" ;;
+    *)
+        # Try bin/ first
+        local_bin="$BIN_DIR/$SUBCOMMAND"
+        local_bin_py="$BIN_DIR/${SUBCOMMAND}.py"
+
+        if [ -x "$local_bin" ]; then
+            exec "$local_bin" "$@"
+        elif [ -x "$local_bin_py" ]; then
+            exec python3 "$local_bin_py" "$@"
+        else
+            if command -v "$SUBCOMMAND" >/dev/null 2>&1; then
+                exec "$SUBCOMMAND" "$@"
+            else
+                echo "reflex: unknown command '$SUBCOMMAND'"
+                echo "Run 'reflex list' to see available commands."
+                exit 127
+            fi
+        fi ;;
+esac
