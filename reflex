@@ -196,7 +196,7 @@ if [ "$VERBOSE" = "1" ]; then
 fi
 
 # TODO: implement
-PYEOF
+SHEOF
     fi
 
     chmod +x "$path"
