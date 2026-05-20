@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${AGENT_CLI_ROOT}/hooks/command-track.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
