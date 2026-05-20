@@ -12,12 +12,13 @@ Analyze command usage logs and identify patterns worth aliasing or converting to
 
 ## Your Task
 
-Given a topic area (or "all"), analyze `~/.reflex-cli/usage/commands-*.log` files from the last 14 days to find:
+Given a topic area (or "all"), analyze `~/.reflex-cli/usage/commands-*.log` files and `~/.reflex-cli/usage/scripts.log` from the last 14 days to find:
 1. Most-used commands (frequency ranking)
 2. Flag patterns (same command + same flags, 3+ uses)
 3. Chain patterns (commands with `&&` or `||`)
 4. Path patterns (same file/directory accessed repeatedly)
 5. Long commands that could be simplified with functions
+6. **Custom scripts** — files executed 2+ times outside PATH (~/tmp, /tmp, project dirs) that could be moved to ~/.local/bin/
 
 ## Process
 

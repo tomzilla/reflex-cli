@@ -93,6 +93,41 @@ Show only patterns that exceed the frequency threshold (3+ uses).
 
 Interactively prompt for each suggestion — confirm before writing. Writes to the appropriate shell config based on the host's current shell.
 
+## Use Cases
+
+### 1. Repeated one-liners → aliases
+```
+grep -r "TODO" src/ --include="*.ts"
+```
+Run 10x → suggest `alias greptodo='grep -r "TODO" src/ --include="*.ts"'`
+
+### 2. Custom scripts → permanent PATH binaries
+The agent writes a scratch script to `~/tmp/deploy.sh`, runs it, edits it, runs it again.
+Reflex detects:
+- Same file executed 2+ times
+- File lives outside PATH (~/tmp, /tmp, project dir)
+- The script does something reusable (not purely project-specific)
+
+Suggests:
+```
+📦 Script Candidate:
+  ~/tmp/deploy.sh — run 3x from /tmp
+  → Move to ~/.local/bin/deploy and add to PATH?
+     cp ~/tmp/deploy.sh ~/.local/bin/deploy && chmod +x ~/.local/bin/deploy
+```
+
+### 3. Complex chains → shell functions
+```
+git stash && git pull --rebase && git stash pop
+```
+Run 5x → suggest a `git-sync` function that handles the logic.
+
+### 4. Path shortcuts → aliases
+```
+cd ~/projects/very-long-directory-name/src/api
+```
+Same dir accessed 4x → suggest `alias api='cd ~/projects/very-long-directory-name/src/api'`
+
 ## Analysis Logic
 
 ### Pattern Detection
